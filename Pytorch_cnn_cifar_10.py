@@ -11,7 +11,7 @@ train_transforms = torchvision.transforms.Compose([
     transforms.RandomCrop(32, padding =4),
     transforms.RandomHorizontalFlip(p=0.5),
     transforms.RandomAffine(0, translate= (0.1, 0.1)),
-    transforms.ToTensor()
+    transforms.ToTensor(),
 ])
 
 train_dataset = torchvision.datasets.CIFAR10(root='/home/chandanv/Drive/Courses/Pytorch:AI/Pytorch_AI/data/', 
@@ -26,6 +26,12 @@ test_dataset = torchvision.datasets.CIFAR10(root = '/home/chandanv/Drive/Courses
 
 
 k = len(set(train_dataset.targets))
+
+
+def count_input_neuron(model, image_dim):
+    return model(torch.rand(1, *(image_dim))).data.view(1, -1).size(1)
+
+v = count_input_neuron(model, 128)
 
 class CIFARCNN(nn.Module):
     def __init__(self, k):
@@ -54,7 +60,7 @@ class CIFARCNN(nn.Module):
             nn.Conv2d(in_channels = 64, out_channels= 128, kernel_size= 3, padding= 1),
             nn.ReLU(),
             nn.BatchNorm2d(128),
-            nn.Conv2d(128, 128, kernel_size= 3, stride = 2, padding =1),
+            nn.Conv2d(128, 128, kernel_size= 3, padding =1),
             nn.ReLU(),
             nn.BatchNorm2d(128),
             nn.MaxPool2d(2),
@@ -67,7 +73,7 @@ class CIFARCNN(nn.Module):
         X = self.conv1(X)
         X = self.conv2(X)
         X = self.conv3(X)
-        X = X.view(X.size(0), -1)
+        X = X.view(X.size()[0], -1)
         X = F.dropout(X, p = 0.5)
         X = F.relu(self.fc1(X))
         X = F.dropout(X, p = 0.2)
@@ -79,6 +85,18 @@ model = CIFARCNN(k)
 batch_size = 128
 train_loader = torch.utils.data.DataLoader(dataset= train_dataset, batch_size = batch_size, shuffle = True)
 test_loader = torch.utils.data.DataLoader(dataset= test_dataset, batch_size = batch_size, shuffle = False)
+
+# the data transformer mapped the data to (0, 1)
+# and also moved the color channel before height/width
+tmp_loader = torch.utils.data.DataLoader(dataset=train_dataset, 
+                                           batch_size=1, 
+                                           shuffle=True)
+
+for x, y in tmp_loader:
+  print(x)
+  print(x.shape)
+  break
+
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 model.to(device)
