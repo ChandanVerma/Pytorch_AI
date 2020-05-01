@@ -40,7 +40,7 @@ class CIFARCNN(nn.Module):
             nn.Conv2d(in_channels = 3, out_channels= 32, kernel_size= 3, padding= 1),
             nn.ReLU(),
             nn.BatchNorm2d(32),
-            nn.Conv2d(32, 32, kernel_size= 3, stride = 2, padding= 1),
+            nn.Conv2d(32, 32, kernel_size= 3, padding= 1),
             nn.ReLU(),
             nn.BatchNorm2d(32),
             nn.MaxPool2d(2),
@@ -68,12 +68,12 @@ class CIFARCNN(nn.Module):
 
         self.fc1 = nn.Linear(128 * 4 * 4, 1024)
         self.fc2 = nn.Linear(1024, k)
-
+ 
     def forward(self, X):
         X = self.conv1(X)
         X = self.conv2(X)
         X = self.conv3(X)
-        X = X.view(X.size()[0], -1)
+        X = X.view(X.size(0), -1)
         X = F.dropout(X, p = 0.5)
         X = F.relu(self.fc1(X))
         X = F.dropout(X, p = 0.2)
